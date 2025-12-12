@@ -114,8 +114,81 @@ def draw_ui_elements(
 
         return frame
 
-def get_keypress():
-    pass
+def get_keypress(delay=1):
+        #delay ul este in milisecunde
+        #scopul functiei este de a detecta ce tasta a fost apasata in fereastara si sa o returneze 
+        #partea de interpretare si creare a unei actiuni in functie de tasta apasata se face in main cu niste if uri in fct de ce retuneaza fct asta
 
-def close_camera(camera):
-    pass
+        key = cv2.waitKey(delay) & 0xFF
+
+        if key == 255:
+            return None
+        
+        return chr(key)
+
+def close_camera(cap):
+    
+    if cap is not None:
+        cap.release()
+    #da release la camera ca sa poata fi folosita corect la alte rulari sau de alte aplicatii
+    #destroy inchide toate ferestrele create de openCV
+
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    # Mini test for camera_utils.py only (no other files needed)
+
+    cap = open_camera()
+    score = {"player": 0, "computer": 0, "draw": 0}
+
+    show_help = False
+    detection_status = None
+    player_move = None
+    computer_move = None
+    winner = None
+
+    try:
+        while True:
+            frame = read_frame(cap)
+            if frame is None:
+                continue
+
+            instruction = "C: simulate capture | H: help | Q: quit"
+            if show_help:
+                instruction = "Help: Put hand in the box. Later we detect gestures. Press H to hide."
+
+            # Simulate detection feedback when pressing C
+            frame = draw_ui_elements(
+                frame,
+                score=score,
+                instruction=instruction,
+                detection_status=detection_status,
+                player_move=player_move,
+                computer_move=computer_move,
+                winner=winner,
+            )
+
+            display_frame(frame)
+
+            key = get_keypress()
+            if key is None:
+                continue
+
+            key = key.lower()
+
+            if key == "q":
+                break
+
+            if key == "h":
+                show_help = not show_help
+
+            if key == "c":
+                # Fake "capture" result (since gesture_recognition isn't ready yet)
+                detection_status = "ok"
+                player_move = "rock"
+                computer_move = "paper"
+                winner = "computer"
+                score["computer"] += 1
+
+    finally:
+        close_camera(cap)
