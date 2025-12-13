@@ -72,7 +72,7 @@ def draw_ui_elements(
     if score is None:
         score = {"player": 0, "computer": 0, "draws": 0}
 
-    score_text = f"Player: {score.get("player", 0)}  |  Computer: {score.get("computer", 0)}  |  Draws: {score.get("draws", 0)}"
+    score_text = f"Player: {score.get('player', 0)}  |  Computer: {score.get('computer', 0)}  |  Draw: {score.get('draws', 0)}"
     #se creeaza textul afisat, iar valorile sunt luate din dictionar cu metoda specifica de dictionar .get
     #f permite sa se insereze variabile direct in string
 
