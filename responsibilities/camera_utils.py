@@ -112,7 +112,7 @@ def draw_ui_elements(
         
         cv2.putText(frame, result_text, (15, y_info + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
 
-        return frame
+    return frame
 
 def get_keypress(delay=1):
         #delay ul este in milisecunde
@@ -163,8 +163,6 @@ if __name__ == "__main__":
                 score=score,
                 instruction=instruction,
                 detection_status=detection_status,
-                player_move=player_move,
-                computer_move=computer_move,
                 winner=winner,
             )
 
