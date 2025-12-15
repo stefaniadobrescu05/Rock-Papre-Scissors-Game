@@ -1,35 +1,35 @@
-import cv2 # OpenCV library for camera operations
+import cv2  # OpenCV library for camera operations
 from ui import draw_ui_elements
 
 
 def open_camera(camera_index=0):
 
     cap = cv2.VideoCapture(camera_index)
-    #video capture este o clasa din opencv care se ocupa cu capturarea imaginii de la camera
-    #camera_index este 0 fiindca este valoarea implicita pentru camera web a laptopului. daca era o camera externa, trebuia =1
-    #atribuirea de mai sus returneaza in variabila cap un obiect capturat de la camera web principala cu ajutorul clasei VideoCapture din opencv
+    # video capture este o clasa din opencv care se ocupa cu capturarea imaginii de la camera
+    # camera_index este 0 fiindca este valoarea implicita pentru camera web a laptopului. daca era o camera externa, trebuia =1
+    # atribuirea de mai sus returneaza in variabila cap un obiect capturat de la camera web principala cu ajutorul clasei VideoCapture din opencv
 
     if not cap.isOpened():
         raise RuntimeError("Could not open camera.")
-    #isOpen este o metoda a clasei VideoCapture care verifica daca obiectul cap a reusit sa deschida camera
-    #cap.isOpen returneaza o valoare de adevart sau fals
-    #am pus not in fata pentru a inversa valoarea de adevar si a putea afisa mesajul de eroare
-    #raise este folosit pentru a opri programul si a afisa un mesaj de eroare
-    #mesajul de eroare va fi afisat in terminal
-    #se foloseste RunTimeError pentru o problema care apare in timpul executiei din cauza unor factori externi sau probleme de sistem
+    # isOpen este o metoda a clasei VideoCapture care verifica daca obiectul cap a reusit sa deschida camera
+    # cap.isOpen returneaza o valoare de adevart sau fals
+    # am pus not in fata pentru a inversa valoarea de adevar si a putea afisa mesajul de eroare
+    # raise este folosit pentru a opri programul si a afisa un mesaj de eroare
+    # mesajul de eroare va fi afisat in terminal
+    # se foloseste RunTimeError pentru o problema care apare in timpul executiei din cauza unor factori externi sau probleme de sistem
 
     return cap
 
 
 def read_frame(cap):
     status, frame = cap.read()
-    #status este un boolean care indica daca citirea a fost cu succes
-    #frame este cadrul citit de la camera - a NumPy arraay care contine pixelii imaginii capturate
-    #.read() este o metoda a clasei VideoCapture care citeste un cadru de la camera
+    # status este un boolean care indica daca citirea a fost cu succes
+    # frame este cadrul citit de la camera - a NumPy array care contine pixelii imaginii capturate
+    # .read() este o metoda a clasei VideoCapture care citeste un cadru de la camera
 
     if not status:
         return None
-    #daca status este fals, returnam None
+    # daca status este fals, returnam None
 
     # Oglindim imaginea pe orizontala (flip) pentru a fi mai natural
     # flipCode=1 inseamna flip orizontal (ca in oglinda)
@@ -46,8 +46,8 @@ def display_frame(frame, window_name="Rock-Paper-Scissors Game"):
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
     cv2.imshow(window_name, frame)
-    #se modifica fereastra de fiecare data cand este apelata daca in main se apeleaza impreuna cu cv2.waitKey()
-    #imshow este o functie din biblioteca openCV
+    # se modifica fereastra de fiecare data cand este apelata daca in main se apeleaza impreuna cu cv2.waitKey()
+    # imshow este o functie din biblioteca openCV
 
 
 def get_keypress(delay=1):
@@ -64,11 +64,16 @@ def get_keypress(delay=1):
 
 
 def close_camera(cap):
-
+    """
+    Elibereaza camera si inchide toate ferestrele OpenCV
+    
+    Args:
+        cap: Obiectul VideoCapture de inchis
+    """
     if cap is not None:
         cap.release()
-    #da release la camera ca sa poata fi folosita corect la alte rulari sau de alte aplicatii
-    #destroy inchide toate ferestrele create de openCV
+    # da release la camera ca sa poata fi folosita corect la alte rulari sau de alte aplicatii
+    # destroy inchide toate ferestrele create de openCV
 
     cv2.destroyAllWindows()
 
