@@ -27,11 +27,20 @@ def read_frame(cap):
     if not status:
         return None
     #daca status este fals, returnam None
+    
+    # Oglindim imaginea pe orizontala (flip) pentru a fi mai natural
+    # flipCode=1 inseamna flip orizontal (ca in oglinda)
+    frame = cv2.flip(frame, 1)
+    
     return frame
 
 def display_frame(frame, window_name="Rock-Paper-Scissors Game"):
     #se deschide o fereasta cu numele specificat in  OpenCV si se afiseaza frameul capturat mai devreme
-
+    
+    # Setam fereastra sa fie resizable (scalabila)
+    # cv2.WINDOW_NORMAL permite redimensionarea manuala sau fullscreen
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    
     cv2.imshow(window_name, frame)
     #se modifica fereastra de fiecare data cand este apelata daca in main se apeleaza impreuna cu cv2.waitKey()
     #imshow este o functie din biblioteca openCV
