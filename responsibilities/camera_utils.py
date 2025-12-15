@@ -50,7 +50,10 @@ def draw_ui_elements(
     score=None,
     instruction="Press C to capture | Q to quit",
     detection_status=None,   # None / "ok" / "fail" - colors ROI
-    winner=None, #"player" / "computer" / "draw" 
+    detected_gesture=None,  # "rock" / "paper" / "scissors" / None - gestul detectat in timp real
+    winner=None, #"player" / "computer" / "draw"
+    player_move=None,  # "rock" / "paper" / "scissors" - ce a facut jucatorul
+    computer_move=None,  # "rock" / "paper" / "scissors" - ce a facut computerul
     roi=((160, 120), (480, 440)),  # ((x1,y1),(x2,y2)),  rectangle where user should place hand
     #region of interest -  cu coordonatele pentru punctul din stanga sus, respectiv din dreapta jos
 ):
@@ -80,16 +83,39 @@ def draw_ui_elements(
     #Score
     if score is None:
         score = {"player": 0, "computer": 0, "draws": 0}
-
+        
     score_text = f"Player: {score.get('player', 0)}  |  Computer: {score.get('computer', 0)}  |  Draw: {score.get('draws', 0)}"
     #se creeaza textul afisat, iar valorile sunt luate din dictionar cu metoda specifica de dictionar .get
     #f permite sa se insereze variabile direct in string
 
-    cv2.putText(frame, score_text, (15, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+    cv2.putText(frame, score_text, (15, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     #se adauga textul pe frame, in poztitia (15,32), cu fontul specificat, marimea 0.8, culoarea alba (BGR) si grosimea 2
 
-    #Instruction
-    cv2.putText(frame, instruction, (15, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (230, 230, 230), 2)
+    #Instruction (word-wrapped to stay inside window)
+    if instruction:
+        max_width = w - 30  # 15px padding on both sides
+        words = instruction.split()
+        lines = []
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.7
+        thickness = 2
+        current = ""
+        for word in words:
+            test = (current + " " + word).strip()
+            size = cv2.getTextSize(test, font, scale, thickness)[0]
+            if size[0] <= max_width or not current:
+                current = test
+            else:
+                lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+
+        y = 50  # start inside the top bar
+        line_h = int(cv2.getTextSize("Ag", font, scale, thickness)[0][1] * 1.4)
+        for line in lines[:3]:  # cap to 3 lines to keep within bar
+            cv2.putText(frame, line, (15, y), font, scale, (230, 230, 230), thickness)
+            y += line_h
 
     #ROI rectangle
     (x1, y1), (x2, y2) = roi
@@ -110,16 +136,65 @@ def draw_ui_elements(
     #pt valori pozitive [1, 5+] se decide cat de groasa va fi bordura chenarului, iar pentru -1 se umple tot chenarul cu acaea culoare
     cv2.putText(frame, status_text, (x1, y2 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, roi_color, 2)
 
+    # Afisam gestul detectat in timp real in coltu din dreapta sus
+    if detected_gesture is not None:
+        # Pozitie top-right
+        real_time_text = f"Detected: {detected_gesture.upper()}"
+        text_size = cv2.getTextSize(real_time_text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
+        text_x = w - text_size[0] - 15
+        text_y = bar_h + 40
+        
+        # Background pentru text (pentru citibilitate)
+        cv2.rectangle(frame, (text_x - 5, text_y - 25), (w - 10, text_y + 5), (0, 0, 0), -1)
+        cv2.putText(frame, real_time_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+    elif detection_status == "fail":
+        # Afisam mesaj de eroare cand nu detecteaza
+        error_text = "Invalid Gesture"
+        text_size = cv2.getTextSize(error_text, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)[0]
+        text_x = w - text_size[0] - 15
+        text_y = bar_h + 40
+        
+        # Background pentru text
+        cv2.rectangle(frame, (text_x - 5, text_y - 25), (w - 10, text_y + 5), (0, 0, 0), -1)
+        cv2.putText(frame, error_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+
     y_info = bar_h + 30
+    
+    # Afisam mutarile jucatorului si computerului daca exista (in zona de jos, la stanga si dreapta)
+    if player_move is not None and computer_move is not None:
+        # Afisam mutarea jucatorului pe stanga jos
+        player_text = f"You: {player_move.upper()}"
+        # Background pentru text cu padding
+        player_text_size = cv2.getTextSize(player_text, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 3)[0]
+        padding = 15
+        cv2.rectangle(frame, (10, h - 160), (10 + player_text_size[0] + 2*padding, h - 70), (50, 50, 50), -1)
+        cv2.putText(frame, player_text, (10 + padding, h - 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (100, 200, 255), 3)  # Orange
+        
+        # Afisam mutarea computerului pe dreapta jos
+        computer_text = f"Computer: {computer_move.upper()}"
+        computer_text_size = cv2.getTextSize(computer_text, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 3)[0]
+        cv2.rectangle(frame, (w - 10 - computer_text_size[0] - 2*padding, h - 160), (w - 10, h - 70), (50, 50, 50), -1)
+        cv2.putText(frame, computer_text, (w - 10 - computer_text_size[0] - padding, h - 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 100, 100), 3)  # Cyan
+    
     if winner is not None:
         if winner == "player":
             result_text = "You Win!"
+            result_color = (0, 255, 0)  # Green
         elif winner == "computer":
             result_text = "Computer Wins!"
+            result_color = (0, 0, 255)  # Red
         else:
             result_text = "It's a Draw!"
+            result_color = (255, 255, 0)  # Cyan
         
-        cv2.putText(frame, result_text, (15, y_info + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+        # Afisam rezultatul in centru, sus
+        text_size = cv2.getTextSize(result_text, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 3)[0]
+        text_x = (w - text_size[0]) // 2
+        text_y = bar_h + 60
+        
+        # Background pentru text
+        cv2.rectangle(frame, (text_x - 10, text_y - 35), (text_x + text_size[0] + 10, text_y + 10), (0, 0, 0), -1)
+        cv2.putText(frame, result_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, result_color, 3)
 
     return frame
 
